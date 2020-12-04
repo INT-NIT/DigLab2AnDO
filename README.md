@@ -1,2 +1,2 @@
 # diglab2ando
-Create and AnDO directory from a DigLaB form
+Create an AnDO directory from a DigLaB form
