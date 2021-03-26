@@ -1,6 +1,3 @@
-from unittest import TestCase
-
-
-class test_diglab_2_Ando(TestCase):
+class test_diglab_2_Ando():
     def setUp(self) -> None:
         pass
