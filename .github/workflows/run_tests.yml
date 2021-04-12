@@ -55,7 +55,7 @@ jobs:
         run: pip install coveralls
 
       - name: Create coverage
-        run: coverage run --source=. -m pytest tests
+        run: coverage run --source=. -m pytest tests/
 
       - name: Submit to coveralls
         env:
