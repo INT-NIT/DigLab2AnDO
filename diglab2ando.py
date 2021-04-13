@@ -22,7 +22,6 @@ from DICE import Extractor
 
 odml_data = 
 
-
 ###
 # 2. create AnDO directory
 ###
