@@ -18,7 +18,6 @@ diglab2ando.py pdf_file root_data_dir [-f datafile1 ... datafileN]
 ###
 # 1. read diglab form with DICE and generate odml metadata
 ###
-from DICE import Extractor
 
 odml_data = 
 
