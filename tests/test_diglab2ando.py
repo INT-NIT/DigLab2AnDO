@@ -1,3 +1,6 @@
-class test_diglab_2_Ando():
-    def setUp(self) -> None:
-        pass
+from unittest import TestCase
+
+
+class Test(TestCase):
+    def test_empty(self):
+        self.assertEqual(True, True)
