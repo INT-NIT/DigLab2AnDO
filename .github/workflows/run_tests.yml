@@ -54,10 +54,4 @@ jobs:
       - name: Install Python test dependencies
         run: pip install coveralls
 
-      - name: Create coverage
-        run: coverage run -m pytest tests/
 
-      - name: Submit to coveralls
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: coveralls --service=github
