@@ -53,5 +53,8 @@ jobs:
 
       - name: Install Python test dependencies
         run: pip install coveralls
+        
+      - name: Create coverage
+        run: coverage run --source=tests -m pytest tests/
 
 
