@@ -1,18 +1,18 @@
-'''
+"""
 This code can be used to extract metadata from a PDF form following the DigLab layout.
 Example:
     $ python diglab2ando.py  [pdf file]  [root data dir] -f [datafile1]  [datafile2] ... [datafileN]
 Usage:
 diglab2ando.py pdf_file root_data_dir [-f datafile1 ... datafileN]
-    
+
     mandatory argument:
     pdf_form                      pdf form generated using the DigLaB tool used at INT
     root_data_dir                 root directory that follows the AnDO specifications, where the metadata
                                   and data will be stored
-    
+
     optional argument:
     -f datafile1 ... datafileN    list of files containing various data to be included in the AnDO directory
-'''
+"""
 
 
 ###
