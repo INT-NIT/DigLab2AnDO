@@ -1,0 +1,10 @@
+{
+  "TestProject": {
+    "project_definition": "/home/sprengerj/repos/RedCap_forms/TestProject",
+    "output_directory": "/home/sprengerj/tmp/TestProject"
+  },
+  "SimpleProject": {
+    "project_definition": "/home/sprengerj/repos/RedCap_forms/SimpleProject",
+    "output_directory": "/home/sprengerj/tmp/SimpleProject"
+  }
+}
