@@ -1,9 +1,9 @@
 
 import pathlib
 import json
-from csv import reader
 from ando.tools.generator.AnDOGenerator import AnDOData
 from redcap_bridge.server_interface import download_records
+
 config_file = pathlib.Path(__file__).parent / 'config.json'
 project_name = 'SimpleProject'
 
