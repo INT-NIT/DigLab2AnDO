@@ -71,9 +71,6 @@ def get_sub_ses_ids(record_dict):
 
     Returns
     ----------
-
-    TODO: This still needs to be tweaked to only contain alphanumeric characters
-
     """
     sub_id = record_dict['guid']
     ses_id = record_dict['date'] + record_dict['ses_number'] + record_dict['ses_custom_field']
