@@ -3,6 +3,7 @@ import pathlib
 import json
 from ando.tools.generator.AnDOGenerator import AnDOData
 from redcap_bridge.server_interface import download_records
+from ando.checker import is_valid
 
 config_file = pathlib.Path(__file__).parent / 'config.json'
 project_name = 'SimpleProject'
@@ -21,6 +22,9 @@ def get_metadata(conf, format):
     Fetch all recorded metadata from the server
     Parameters
     ----------
+    conf:
+
+    format:
 
     Returns
     ----------
@@ -35,7 +39,17 @@ def get_metadata(conf, format):
     return records
 
 def convert_to_bids(records, OUTPUT_FOLDER):
+    """
 
+    Parameters
+    ----------
+    records:
+
+    OUTPUT_FOLDER:
+
+    Returns
+    ----------
+    """
     for record_dict in records:
         sub_id, ses_id = get_sub_ses_ids(record_dict)
         gen = AnDOData(sub_id, ses_id, modality='ephys')
@@ -48,17 +62,37 @@ def convert_to_bids(records, OUTPUT_FOLDER):
 
 
 def get_sub_ses_ids(record_dict):
+    """
+
+    Parameters
+    ----------
+    record_dict:
+
+
+    Returns
+    ----------
+
+    TODO: This still needs to be tweaked to only contain alphanumeric characters
+
+    """
     sub_id = record_dict['guid']
-    # TODO: This still needs to be tweaked to only contain alphanumeric characters
     ses_id = record_dict['date'] + record_dict['ses_number'] + record_dict['ses_custom_field']
 
-    return sub_id, ses_id
-
+    if ses_id.isalnum() and sub_id.isalnum():
+        return sub_id, ses_id
+    else:
+        raise Exception("Record dict must only contain  alphanumeric characters")
 
 def get_data_file():
-    # TODO: this needs to be replaced by a project-specific
-    #  functions that converts the data to nix and provides the path to the nix
-    #  file
+    """
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    TODO: this needs to be replaced by a project-specific functions that converts the data to nix and provides the path to the nix file
+    """
+
     dummy_nix_file = OUTPUT_FOLDER / 'dummy_file.nix'
     if not dummy_nix_file.exists():
         dummy_nix_file.touch()
@@ -66,11 +100,29 @@ def get_data_file():
 
 
 def generate_metadata_files(record_dict, save_dir):
-    # TODO: this needs to generate the basic BIDS metadata files and
+    """
+
+    Parameters
+    ----------
+    record_dict:
+    save_dir:
+
+    Returns
+    ----------
+
+    TODO: this needs to generate the basic BIDS metadata files and
+    """
+
     # these can then be rearranged into the right location by the ando generator
     filename = f'sub-{record_dict["guid"]}_ses-{record_dict["date"]}_ephys.json'
     with open(save_dir / filename, 'w') as f:
         json.dump(record_dict, f)
+
+    metadata_filenames = ["dataset_description.json","tasks.json","participants.json"
+                          "tasks.csv", "participants.csv"]
+    for filename in metadata_filenames:
+        with open(save_dir / filename, 'w') as f:
+          pass
 
 
 if __name__ == '__main__':
@@ -79,37 +131,10 @@ if __name__ == '__main__':
     if not rec:
         raise ValueError(f'No records found for project {project_name}.')
     convert_to_bids(rec, OUTPUT_FOLDER)
+    ando.is_valid(OUTPUT_FOLDER)
 
 
-# def get_info(path_to_csv_file):
-#     """
-#     Make sure essential info is present (exp_name, session_id)
-#     Parameters
-#     ----------
-#     path_to_csv_file: str
-#         Path to config file
-#
-#
-#     Returns
-#     ----------
-#     str
-#         ses_id string
-#     str
-#         sub_id string
-#     """
-#     with open(path_to_csv_file, 'r') as read_obj:
-#         csv_reader = reader(read_obj)
-#         for row in csv_reader:
-#             try:
-#                 sub_id = row["sub_id"]
-#                 ses_id = row["ses_id"]
-#             except KeyError:
-#                 print(f"key not found.")
-#         return sub_id, ses_id
 
-#
-#
-#
 # def convert(project_name, output_directory):
 #     # open config , find project specifications
 #     # use Diglabtools -> download_records -> 'records.csv' / 'records.json'
