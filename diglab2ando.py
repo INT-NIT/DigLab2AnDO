@@ -1,4 +1,4 @@
-
+import re
 import pathlib
 import json
 from ando.tools.generator.AnDOGenerator import AnDOData
@@ -73,12 +73,21 @@ def get_sub_ses_ids(record_dict):
     ----------
     """
     sub_id = record_dict['guid']
-    ses_id = record_dict['date'] + record_dict['ses_number'] + record_dict['ses_custom_field']
+    ses_id = f"{record_dict['date']}"
+
+    for sep, key in zip(['id', 'c'], ['ses_number', 'ses_custom_field']):
+        if key in record_dict:
+            ses_id += f"{sep}{record_dict[key]}"
+
+    # clean strings
+    sub_id = re.sub(r'[\W_]+', '', sub_id)
+    ses_id = re.sub(r'[\W_]+', '', ses_id)
+
 
     if ses_id.isalnum() and sub_id.isalnum():
         return sub_id, ses_id
     else:
-        raise Exception("Record dict must only contain  alphanumeric characters")
+        raise Exception("Record dict must only contain alphanumeric characters")
 
 def get_data_file():
     """
