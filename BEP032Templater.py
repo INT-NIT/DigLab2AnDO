@@ -53,9 +53,8 @@ class BEP032TemplateData(BEP032Data):
         self.project_name = project_name
 
     def generate_metadata_file_participants(self, output):
-        assert self.sub_id == self.diglab_df['guid']
-        participant_df = pd.DataFrame([['sub-' + self.sub_id]],
-                                      columns=['participant_id'])
+        assert self.sub_id == self.diglab_df['guid'].values[0]
+        participant_df = pd.DataFrame([['sub-' + self.sub_id]], columns=['participant_id'])
         if not output.with_suffix('.tsv').exists():
             save_tsv(participant_df, output)
 
@@ -68,12 +67,12 @@ class BEP032TemplateData(BEP032Data):
             "Name": self.project_name,
             "BIDSVersion": "1.6.0",
             "License": "CC BY 4.0",
-            "Authors": [self.diglab_df['user']],
+            "Authors": self.diglab_df['user'].to_list(),
             "Acknowledgements": "TBA",
             "HowToAcknowledge": "TBA",
             "Funding": ["TBA"],
             "ReferencesAndLinks": "TBA",
-            "EthicsApprovals": [self.diglab_df['ethical_protocol_id']]
+            "EthicsApprovals": self.diglab_df['ethical_protocol_id'].to_list()
         }
         save_json(dataset_dict, output)
 
@@ -118,25 +117,26 @@ class BEP032TemplateData(BEP032Data):
                      'shape', 'contact_size'])
         save_tsv(contact_df, output)
 
+    def _get_compressed_choices(self, question_label, active_value=1):
+        # extract columns belonging to this question (if it's a multiple choice question)
+        question_df = self.diglab_df.filter(regex=f'{question_label}___\w', axis=1)
+        # shorten column names and only use choices as column labels
+        question_df.columns = question_df.columns.str.replace(f'{question_label}___', '')
+        # extract choices that contain 'active' (selected) value
+        choices = question_df.columns[(question_df.values==active_value)[0]].to_list()
+        return choices
+
     def generate_metadata_file_ephys(self, output):
         # extract selected modalities
-        modes = self.diglab_df.filter(regex='modality___\w', axis=1)
-        modalities = modes.columns[modes==1].str.replace('modality___', '')
+        modalities = self._get_compressed_choices('modality')
+        trialbeh = self._get_compressed_choices('subject_behaviour')
+        posttrialbeh = self._get_compressed_choices('subject_behaviour_2')
+        rewardfluidtype = self._get_compressed_choices('reward_fluid_type')
 
-        trialbeh = self.diglab_df.filter(regex='subject_behaviour___\w', axis=1)
-        trialbeh = trialbeh.columns[trialbeh==1].str.replace('subject_behaviour___', '')
+        if self.diglab_df['reward_fluid_type_other'].values[0]:
+            rewardfluidtype += self.diglab_df['reward_fluid_type_other'].values
 
-        posttrialbeh = self.diglab_df.filter(regex='subject_behaviour_2___\w', axis=1)
-        posttrialbeh = trialbeh.columns[posttrialbeh==1].str.replace('subject_behaviour_2___', '')
-
-        rewardfluidtype = self.diglab_df.filter(regex='reward_fluid_type___\w', axis=1)
-        rewardfluidtype = trialbeh.columns[rewardfluidtype==1].str.replace('reward_fluid_type___', '')
-
-        if self.diglab_df['reward_fluid_type_other']:
-            rewardfluidtype += [self.diglab_df['reward_fluid_type_other']]
-
-        rewardothertype = self.diglab_df.filter(regex='reward_other___\w', axis=1)
-        rewardothertype = trialbeh.columns[rewardothertype==1].str.replace('reward_other___', '')
+        rewardothertype = self._get_compressed_choices('reward_other')
 
 
         ephys_dict = {
@@ -151,7 +151,7 @@ class BEP032TemplateData(BEP032Data):
             #             "Boulevard Jean Moulin, 13005 Marseille - France",
             # "Software": "Cerebus",
             # "SoftwareVersion": "1.5.1",
-            "Creator": self.diglab_df['user'],
+            "Creator": self.diglab_df['user'].values[0],
             # "Maintainer": "John Doe jr.",
             # "Procedure": {
             #     "Pharmaceuticals": {
@@ -167,56 +167,62 @@ class BEP032TemplateData(BEP032Data):
             #         },
             #     },
             # },
-            "Comments": self.diglab_df['comments_exp'],
-            "SessionNumber": self.diglab_df['ses_number'],
+            "Comments": self.diglab_df['comments_exp'].values[0],
+            "SessionNumber": self.diglab_df['ses_number'].values[0],
             "Subject": {
-                "Weight": self.diglab_df['weight'],
+                "Weight": self.diglab_df['weight'].values[0],
                 "WeightUnit": 'kg',
-                "Comments": self.diglab_df['comments_subject'],
+                "Comments": self.diglab_df['comments_subject'].values[0],
                 "SubjectBehaviour": trialbeh,
                 "PostTrialSubjectBehaviour": posttrialbeh,
             },
             "SpecialEvents": {},
             "Modalities": modalities,
             "Setup": {
-                "Comments": self.diglab_df['comments_setup']
+                "Comments": self.diglab_df['comments_setup'].values[0]
             },
             "Rewards": {
                 "FluidType": rewardfluidtype,
                 "OtherType": rewardothertype,
             },
             "DigLab": {
-                "record_id": self.diglab_df['record_id'],
-                "diglab_version": self.diglab_df['diglab_version'],
-                "redcap_form_version": self.diglab_df['redcap_form_version'],
+                "record_id": self.diglab_df['record_id'].values[0],
+                # TODO: Fix test dataset
+                # "diglab_version": self.diglab_df['provenance_diglabtools_version'].values[0],
+                # "redcap_form_version": self.diglab_df['redcap_form_version'].values[0],
             }
         }
 
         for id in range(3):
-            if self.diglab_df[f'special_event_{id}']:
+            if self.diglab_df[f'special_event_{id}'].values[0]:
                 ephys_dict["SpecialEvents"][id] = {
-                    "Comment": self.diglab_df[f'special_event_{id}'],
-                    "Time": self.diglab_df[f'special_event_time_{id}']
+                    "Comment": self.diglab_df[f'special_event_{id}'].values[0],
+                    "Time": self.diglab_df[f'special_event_time_{id}'].values[0]
                 }
 
         save_json(ephys_dict, output)
 
     def generate_metadata_file_scans(self, output):
         # extract data quality value
-        qualities = self.diglab_df.filter(regex='data_quality___\w', axis=1)
-        quality = qualities.columns[qualities==1].str.replace('quality___', '')
+        quality = self._get_compressed_choices('data_quality')
 
         for key in self.data.keys():
             filename = f'ephys/sub-{self.sub_id}_ses-{self.ses_id}'
             if key:
                 filename += key
             filename += '.nix'
-            runs_df = pd.DataFrame([
-                [filename, self.diglab_df['date']], self.diglab_df['exp_name'],
-                self.diglab_df['stimulation___yes'],
-                self.diglab_df['subject_behaviour_multi___yes'], self.diglab_df['time_last_trial'],
-                quality, self.diglab_df['incomplete_session___yes'],
-                self.diglab_df['reward_fluid'], 'ml', self.diglab_df['reward_fluid_additional']
+            runs_df = pd.DataFrame([[
+                filename,
+                self.diglab_df['date'].values[0]],
+                self.diglab_df['exp_name'].values[0],
+                self.diglab_df['stimulation___yes'].values[0],
+                self.diglab_df['subject_behaviour_multi___yes'].values[0],
+                self.diglab_df['time_last_trial'].values[0],
+                quality,
+                self.diglab_df['incomplete_session___yes'].values[0],
+                self.diglab_df['reward_fluid'].values[0],
+                'ml',
+                self.diglab_df['reward_fluid_additional'].values[0]
                 ],
                 columns=['filename', 'acq_date', 'exp_name', 'stimulation', 'post_trial_data',
                          'time_last_trial', 'data_quality', 'incomplete_session', 'fluid_reward',

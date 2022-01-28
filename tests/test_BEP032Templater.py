@@ -9,8 +9,6 @@ from BEP032Templater import BEP032TemplateData
 class Test_BEP032Templater(unittest.TestCase):
     def setUp(self):
         test_dir = Path(initialize_test_directory(clean=True))
-        self.sub_id = 'sub5'
-        self.ses_id = 'ses1'
         self.tasks = None
         self.runs = None
 
@@ -19,29 +17,38 @@ class Test_BEP032Templater(unittest.TestCase):
         project = test_dir / 'project-A'
         project.mkdir()
         self.basedir = project
-        self.diglab_dfs = pd.read_csv('test_files/record.csv', header=0)
-        self.diglab_dict = self.diglab_dfs.to_dict(orient='index')
+        self.diglab_dfs = pd.read_csv('test_files/record.csv', header=0, na_filter=False, dtype=str)
+        record_ids = self.diglab_dfs.index.values
 
-        d = BEP032TemplateData(self.sub_id, self.ses_id, diglab_df=self.diglab_dict[0])
-        d.basedir = project
+        self.bep032_data_list = []
+        self.test_data_files = []
+        self.test_mdata_files = []
 
-        self.bep032_data = d
-        prefix = f'sub-{self.sub_id}_ses-{self.ses_id}'
-        self.test_data_files = [sources / (prefix + '_ephy.nix'),
-                                sources / (prefix + '_ephy.nwb')]
-        self.test_mdata_files = [sources / 'dataset_description.json',
+        for record_id in record_ids:
+            record = self.diglab_dfs.loc[[record_id]]
+            sub_id = record['guid'].values[0]
+            ses_id = record['exp_name'].values[0]
+            d = BEP032TemplateData(sub_id, ses_id, diglab_df=record)
+            d.basedir = project
+
+            self.bep032_data_list.append(d)
+            prefix = f'sub-{sub_id}_ses-{ses_id}'
+            self.test_data_files.append([sources / (prefix + '_ephy.nix'),
+                                sources / (prefix + '_ephy.nwb')])
+            self.test_mdata_files.append([sources / 'dataset_description.json',
                                  sources / (prefix + '_probes.tsv'),
-                                 sources / (prefix + '_contacts.json')]
+                                 sources / (prefix + '_contacts.json')])
 
-        for f in self.test_mdata_files + self.test_data_files:
-            f.touch()
+            for f in self.test_mdata_files[-1] + self.test_data_files[-1]:
+                f.touch()
 
     def test_generate_all_metadata(self):
-        self.bep032_data.generate_structure()
-        self.bep032_data.register_data_files(*self.test_data_files)
-        self.bep032_data.organize_data_files()
+        for i, data in enumerate(self.bep032_data_list):
+            data.generate_structure()
+            data.register_data_files(*self.test_data_files[i])
+            data.organize_data_files()
 
-        self.bep032_data.generate_all_metadata_files()
+            data.generate_all_metadata_files()
 
 
 class Test_BEP032TemplateData(unittest.TestCase):
