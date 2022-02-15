@@ -27,14 +27,13 @@ class Test_BEP032Templater(unittest.TestCase):
         for record_id in record_ids:
             record = self.diglab_dfs.loc[[record_id]]
             sub_id = record['guid'].values[0]
-            ses_id = record['exp_name'].values[0]
+            ses_id = record['date'].values[0]
             d = BEP032TemplateData(sub_id, ses_id, diglab_df=record)
             d.basedir = project
 
             self.bep032_data_list.append(d)
             prefix = f'sub-{sub_id}_ses-{ses_id}'
-            self.test_data_files.append([sources / (prefix + '_ephy.nix'),
-                                sources / (prefix + '_ephy.nwb')])
+            self.test_data_files.append([sources / (prefix + '_ephy.nix')])
             self.test_mdata_files.append([sources / 'dataset_description.json',
                                  sources / (prefix + '_probes.tsv'),
                                  sources / (prefix + '_contacts.json')])
@@ -44,8 +43,10 @@ class Test_BEP032Templater(unittest.TestCase):
 
     def test_generate_all_metadata(self):
         for i, data in enumerate(self.bep032_data_list):
+            ses_number = self.diglab_dfs.loc[[i]]['ses_number'].values[0]
+            exp_name = self.diglab_dfs.loc[[i]]['exp_name'].values[0]
             data.generate_structure()
-            data.register_data_files(*self.test_data_files[i])
+            data.register_data_files(*self.test_data_files[i], run=ses_number, task=exp_name)
             data.organize_data_files()
 
             data.generate_all_metadata_files()
