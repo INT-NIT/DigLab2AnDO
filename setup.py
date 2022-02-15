@@ -23,7 +23,7 @@ setup(
     license='MIT',
     install_requires=[],
     include_package_data=True,
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     extras_require={
         'test': ['pytest']
     }
