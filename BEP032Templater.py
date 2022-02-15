@@ -55,6 +55,7 @@ class BEP032TemplateData(BEP032Data):
     def generate_metadata_file_participants(self, output):
         assert self.sub_id == self.diglab_df['guid'].values[0]
         participant_df = pd.DataFrame([['sub-' + self.sub_id]], columns=['participant_id'])
+        participant_df.set_index('participant_id', inplace=True)
         if not output.with_suffix('.tsv').exists():
             save_tsv(participant_df, output)
 
@@ -80,6 +81,7 @@ class BEP032TemplateData(BEP032Data):
         session_df = pd.DataFrame([
             ['ses-' + self.ses_id, '2009-06-15T13:45:30', '120']],
             columns=['session_id', 'acq_time', 'systolic_blood_pressure'])
+        session_df.set_index('session_id', inplace=True)
         if not output.with_suffix('.tsv').exists():
             save_tsv(session_df, output)
 
@@ -91,6 +93,7 @@ class BEP032TemplateData(BEP032Data):
             ['t420b', 'tetrode', 7, 'iridium-oxide', 500, 0, 0, 'circle', 20]],
             columns=['probe_id', 'type', 'coordinate_space', 'material', 'x', 'y', 'z', 'shape',
                      'contact_size'])
+        probes_df.set_index('probe_id', inplace=True)
         save_tsv(probes_df, output)
 
     def generate_metadata_file_channels(self, output):
@@ -102,6 +105,7 @@ class BEP032TemplateData(BEP032Data):
             ],
             columns=['channel_id', 'contact_id', 'type', 'units', 'sampling_frequency', 'gain',
                      'status'])
+        channels_df.set_index(['channel_id', 'contact_id'], inplace=True)
         save_tsv(channels_df, output)
 
     def generate_metadata_file_contacts(self, output):
@@ -115,6 +119,7 @@ class BEP032TemplateData(BEP032Data):
             ],
             columns=['contact_id', 'probe_id', 'shank_id', 'impedance', 'material', 'x', 'y', 'z',
                      'shape', 'contact_size'])
+        contact_df.set_index(['contact_id', 'probe_id'], inplace=True)
         save_tsv(contact_df, output)
 
     def _get_compressed_choices(self, question_label, active_value=1):
@@ -213,20 +218,21 @@ class BEP032TemplateData(BEP032Data):
             filename += '.nix'
             runs_df = pd.DataFrame([[
                 filename,
-                self.diglab_df['date'].values[0]],
+                self.diglab_df['date'].values[0],
                 self.diglab_df['exp_name'].values[0],
-                self.diglab_df['stimulation___yes'].values[0],
-                self.diglab_df['subject_behaviour_multi___yes'].values[0],
+                self.diglab_df['stimulation'].values[0],
+                self.diglab_df['subject_behaviour_multi'].values[0],
                 self.diglab_df['time_last_trial'].values[0],
                 quality,
-                self.diglab_df['incomplete_session___yes'].values[0],
+                self.diglab_df['incomplete'].values[0],
                 self.diglab_df['reward_fluid'].values[0],
                 'ml',
                 self.diglab_df['reward_fluid_additional'].values[0]
-                ],
+                ]],
                 columns=['filename', 'acq_date', 'exp_name', 'stimulation', 'post_trial_data',
                          'time_last_trial', 'data_quality', 'incomplete_session', 'fluid_reward',
                          'fluid_reward_unit', 'additional_fluid_reward'])
+            runs_df.set_index('filename', inplace=True)
             save_tsv(runs_df, output)
 
     def validate(self):
