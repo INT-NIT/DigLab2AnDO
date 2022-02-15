@@ -252,137 +252,75 @@ class BEP032TemplateData(BEP032Data):
         bep032tools.validator.BEP032Validator.is_valid(self.basedir)
 
 
-def create_file(source, destination, mode):
-    """
-    Create a file at a destination location
-
-    Parameters
-    ----------
-    source: str
-        Source location of the file.
-    destination: str
-        Destination location of the file.
-    mode: str
-        File creation mode. Valid parameters are 'copy', 'link' and 'move'.
-
-    Raises
-    ----------
-    ValueError
-        In case of invalid creation mode.
-    """
-    if mode == 'copy':
-        shutil.copy(source, destination)
-    elif mode == 'link':
-        os.link(source, destination)
-    elif mode == 'move':
-        shutil.move(source, destination)
-    else:
-        raise ValueError(f'Invalid file creation mode "{mode}"')
-
-
-def extract_structure_from_csv(csv_file):
-    """
-    Load csv file that contains folder structure information and return it as pandas.datafram.
-
-    Parameters
-    ----------
-    csv_file: str
-        The file to be loaded.
-
-    Returns
-    -------
-    pandas.dataframe
-        A dataframe containing the essential columns for creating an BEP032 structure
-    """
-    if not HAVE_PANDAS:
-        raise ImportError('Extraction of bep032 structure from csv requires pandas.')
-
-    df = pd.read_csv(csv_file, dtype=str)
-
-    # ensure all fields contain information
-    if df.isnull().values.any():
-        raise ValueError(f'Csv file contains empty cells.')
-
-    # standardizing column labels
-    # df = df.rename(columns=LABEL_MAPPING)
-
-    # Check is the header contains all required names
-    if not set(ESSENTIAL_CSV_COLUMNS).issubset(df.columns):
-        raise ValueError(f'Csv file ({csv_file}) does not contain required information '
-                         f'({ESSENTIAL_CSV_COLUMNS}). '
-                         f'Accepted column names are specified in the BEP.')
-
-    return df
-
-
-def generate_struct(csv_file, pathToDir):
-    """
-    Create structure with csv file given in argument
-    This file must contain a header row specifying the provided data. Accepted titles are
-    defined in the BEP.
-    Essential information of the following attributes needs to be present.
-    Essential columns are 'sub_id' and 'ses_id'.
-
-    Parameters
-    ----------
-    csv_file: str
-        Csv file that contains a list of directories to create.
-    pathToDir: str
-        Path to directory where the directories will be created.
-    """
-
-    df = extract_structure_from_csv(csv_file)
-
-    df = df[ESSENTIAL_CSV_COLUMNS]
-    test_data_files = [Path('empty_ephys.nix')]
-    for f in test_data_files:
-        f.touch()
-
-    for session_kwargs in df.to_dict('index').values():
-        session = BEP032TemplateData(**session_kwargs)
-        session.basedir = pathToDir
-        session.generate_structure()
-        session.register_data_files(*test_data_files)
-        session.organize_data_files(mode='copy')
-        session.generate_all_metadata_files()
-
-    # cleanup
-    for f in test_data_files:
-        if f.exists():
-            f.unlink()
-
-
-def main():
-    """
-
-    Notes
-    ----------
-
-    Usage via command line: BEP032Generator.py [-h] pathToCsv pathToDir
-
-    positional arguments:
-        pathToCsv   Path to your csv file
-
-        pathToDir   Path to your folder
-
-    optional arguments:
-        -h, --help  show this help message and exit
-    """
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('pathToCsv', help='Path to your csv file')
-    parser.add_argument('pathToDir', help='Path to your folder')
-
-    # Create two argument groups
-
-    args = parser.parse_args()
-
-    # Check if directory exists
-    if not os.path.isdir(args.pathToDir):
-        print('Directory does not exist:', args.pathToDir)
-        exit(1)
-    generate_struct(args.pathToCsv, args.pathToDir)
-
-
-if __name__ == '__main__':
-    main()
+#
+# def generate_struct(csv_file, pathToDir):
+#     """
+#     Create structure with csv file given in argument
+#     This file must contain a header row specifying the provided data. Accepted titles are
+#     defined in the BEP.
+#     Essential information of the following attributes needs to be present.
+#     Essential columns are 'sub_id' and 'ses_id'.
+#
+#     Parameters
+#     ----------
+#     csv_file: str
+#         Csv file that contains a list of directories to create.
+#     pathToDir: str
+#         Path to directory where the directories will be created.
+#     """
+#
+#     df = extract_structure_from_csv(csv_file)
+#
+#     df = df[ESSENTIAL_CSV_COLUMNS]
+#     test_data_files = [Path('empty_ephys.nix')]
+#     for f in test_data_files:
+#         f.touch()
+#
+#     for session_kwargs in df.to_dict('index').values():
+#         session = BEP032TemplateData(**session_kwargs)
+#         session.basedir = pathToDir
+#         session.generate_structure()
+#         session.register_data_files(*test_data_files)
+#         session.organize_data_files(mode='copy')
+#         session.generate_all_metadata_files()
+#
+#     # cleanup
+#     for f in test_data_files:
+#         if f.exists():
+#             f.unlink()
+#
+#
+# def main():
+#     """
+#
+#     Notes
+#     ----------
+#
+#     Usage via command line: BEP032Generator.py [-h] pathToCsv pathToDir
+#
+#     positional arguments:
+#         pathToCsv   Path to your csv file
+#
+#         pathToDir   Path to your folder
+#
+#     optional arguments:
+#         -h, --help  show this help message and exit
+#     """
+#
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument('pathToCsv', help='Path to your csv file')
+#     parser.add_argument('pathToDir', help='Path to your folder')
+#
+#     # Create two argument groups
+#
+#     args = parser.parse_args()
+#
+#     # Check if directory exists
+#     if not os.path.isdir(args.pathToDir):
+#         print('Directory does not exist:', args.pathToDir)
+#         exit(1)
+#     generate_struct(args.pathToCsv, args.pathToDir)
+#
+#
+# if __name__ == '__main__':
+#     main()
