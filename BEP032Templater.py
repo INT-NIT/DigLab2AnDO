@@ -279,8 +279,8 @@ class BEP032TemplateData(BEP032Data):
 #     for session_kwargs in df.to_dict('index').values():
 #         session = BEP032TemplateData(**session_kwargs)
 #         session.basedir = pathToDir
-#         session.generate_structure()
-#         session.register_data_files(*test_data_files)
+#         session.generate_directory_structure()
+#         session.register_data_sources(*test_data_files)
 #         session.organize_data_files(mode='copy')
 #         session.generate_all_metadata_files()
 #

@@ -45,8 +45,8 @@ class Test_BEP032Templater(unittest.TestCase):
         for i, data in enumerate(self.bep032_data_list):
             ses_number = self.diglab_dfs.loc[[i]]['ses_number'].values[0]
             exp_name = self.diglab_dfs.loc[[i]]['exp_name'].values[0]
-            data.generate_structure()
-            data.register_data_files(*self.test_data_files[i], run=ses_number, task=exp_name)
+            data.generate_directory_structure()
+            data.register_data_sources(*self.test_data_files[i], run=ses_number, task=exp_name)
             data.organize_data_files()
 
             data.generate_all_metadata_files()
@@ -91,14 +91,14 @@ class Test_BEP032TemplateData(unittest.TestCase):
     #     self.assertTrue(df_local)
     #     self.assertTrue(str(df_abs).endswith(str(df_local)))
     #
-    # def test_generate_structure(self):
-    #     self.bep032_data.generate_structure()
+    # def test_generate_directory_structure(self):
+    #     self.bep032_data.generate_directory_structure()
     #     df = self.bep032_data.get_data_folder()
     #     self.assertTrue(df.exists())
     #
     # def test_data_files(self):
-    #     self.bep032_data.generate_structure()
-    #     self.bep032_data.register_data_files(*self.test_data_files)
+    #     self.bep032_data.generate_directory_structure()
+    #     self.bep032_data.register_data_sources(*self.test_data_files)
     #     self.bep032_data.organize_data_files()
     #
     #     session_folder = self.bep032_data.get_data_folder()
@@ -110,13 +110,13 @@ class Test_BEP032TemplateData(unittest.TestCase):
     #         self.assertTrue(data_file.name.find("_ephys"))
     #
     # def test_data_files_complex(self):
-    #     self.bep032_data.generate_structure()
+    #     self.bep032_data.generate_directory_structure()
     #     nix_files = [self.test_data_files[0]] * 3
     #     runs = ['run1', 'run2']
     #     tasks = ['task1', 'task2']
     #     for run in runs:
     #         for task in tasks:
-    #             self.bep032_data.register_data_files(*nix_files,
+    #             self.bep032_data.register_data_sources(*nix_files,
     #                                                run=run, task=task)
     #
     #     self.bep032_data.organize_data_files()
@@ -145,14 +145,14 @@ class Test_BEP032TemplateData(unittest.TestCase):
     #         self.assertEqual(len(files), exp)
     #
     # def test_data_files_same_key(self):
-    #     self.bep032_data.generate_structure()
+    #     self.bep032_data.generate_directory_structure()
     #     nix_files = [self.test_data_files[0]]
     #     run = 'run1'
     #     task = 'task1'
     #
-    #     self.bep032_data.register_data_files(*nix_files, run=run, task=task)
+    #     self.bep032_data.register_data_sources(*nix_files, run=run, task=task)
     #     # register more data files in a second step
-    #     self.bep032_data.register_data_files(*nix_files, run=run, task=task)
+    #     self.bep032_data.register_data_sources(*nix_files, run=run, task=task)
     #
     #     self.bep032_data.organize_data_files()
     #
@@ -166,8 +166,8 @@ class Test_BEP032TemplateData(unittest.TestCase):
     #
     # def test_implemented_error_raised(self):
     #     path = ""
-    #     self.test_generate_structure()
-    #     self.bep032_data.register_data_files(*self.test_data_files)
+    #     self.test_generate_directory_structure()
+    #     self.bep032_data.register_data_sources(*self.test_data_files)
     #     self.bep032_data.organize_data_files()
     #     self.bep032_data.generate_all_metadata_files()
 
