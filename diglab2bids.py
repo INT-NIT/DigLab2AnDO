@@ -41,7 +41,7 @@ def get_metadata(conf, format):
 
     return records
 
-def convert_to_bids(records, OUTPUT_FOLDER):
+def convert_to_bids(records, files_per_record, OUTPUT_FOLDER):
     """
 
     Parameters
@@ -53,18 +53,14 @@ def convert_to_bids(records, OUTPUT_FOLDER):
     Returns
     ----------
     """
-    for record_dict in records:
+    for files, record_dict in zip(files_per_record, records):
         sub_id, ses_id = get_sub_ses_ids(record_dict)
         gen = BEP032Data(sub_id, ses_id, modality='ephys')
-        files = gen.generate_data_files()
         gen.register_data_files(files)
         gen.basedir = OUTPUT_FOLDER
-        gen.generate_structure()
-        files = gen.generate_metadata_files()
-        gen.register_metadata_files(files)
-
-
-        # generate_metadata_files(record_dict, gen.get_data_folder())
+        gen.generate_directory_structure()
+        gen.generate_all_metadata_files(record_dict)
+        gen.organize_data_files()
 
 
 def get_sub_ses_ids(record_dict):
