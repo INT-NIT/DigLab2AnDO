@@ -25,6 +25,6 @@ setup(
     include_package_data=True,
     python_requires='>=3.6',
     extras_require={
-        'test': ['pytest', 'pandas']
+        'test': ['pytest']
     }
 )
