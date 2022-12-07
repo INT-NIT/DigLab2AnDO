@@ -1,12 +1,14 @@
 import re
 import pathlib
 import json
-from ando.tools.generator.AnDOGenerator import AnDOData
+from bep032tools.generator.BEP032Generator import BEP032Data
 from redcap_bridge.server_interface import download_records
-from ando.checker import is_valid
+from bep032tools.validator.BEP032Validator import is_valid
+
 
 config_file = pathlib.Path(__file__).parent / 'config.json'
 project_name = 'SimpleProject'
+
 
 with open(config_file) as f:
     conf = json.load(f)
@@ -16,6 +18,7 @@ OUTPUT_FOLDER = pathlib.Path(conf[project_name]['output_directory'])
 
 if not OUTPUT_FOLDER.exists():
     OUTPUT_FOLDER.mkdir()
+
 
 def get_metadata(conf, format):
     """
@@ -38,7 +41,7 @@ def get_metadata(conf, format):
 
     return records
 
-def convert_to_bids(records, OUTPUT_FOLDER):
+def convert_to_bids(records, files_per_record, OUTPUT_FOLDER):
     """
 
     Parameters
@@ -50,15 +53,14 @@ def convert_to_bids(records, OUTPUT_FOLDER):
     Returns
     ----------
     """
-    for record_dict in records:
+    for files, record_dict in zip(files_per_record, records):
         sub_id, ses_id = get_sub_ses_ids(record_dict)
-        gen = AnDOData(sub_id, ses_id, modality='ephys')
-        gen.register_data_files(get_data_file())
+        gen = BEP032Data(sub_id, ses_id, modality='ephys')
+        gen.register_data_files(files)
         gen.basedir = OUTPUT_FOLDER
-        gen.generate_structure()
-        gen.generate_data_files(mode='move')
-
-        generate_metadata_files(record_dict, gen.get_data_folder())
+        gen.generate_directory_structure()
+        gen.generate_all_metadata_files(record_dict)
+        gen.organize_data_files()
 
 
 def get_sub_ses_ids(record_dict):
@@ -89,47 +91,6 @@ def get_sub_ses_ids(record_dict):
     else:
         raise Exception("Record dict must only contain alphanumeric characters")
 
-def get_data_file():
-    """
-    Parameters
-    ----------
-
-    Returns
-    ----------
-    TODO: this needs to be replaced by a project-specific functions that converts the data to nix and provides the path to the nix file
-    """
-
-    dummy_nix_file = OUTPUT_FOLDER / 'dummy_file.nix'
-    if not dummy_nix_file.exists():
-        dummy_nix_file.touch()
-    return dummy_nix_file
-
-
-def generate_metadata_files(record_dict, save_dir):
-    """
-
-    Parameters
-    ----------
-    record_dict:
-    save_dir:
-
-    Returns
-    ----------
-
-    TODO: this needs to generate the basic BIDS metadata files and
-    """
-
-    # these can then be rearranged into the right location by the ando generator
-    filename = f'sub-{record_dict["guid"]}_ses-{record_dict["date"]}_ephys.json'
-    with open(save_dir / filename, 'w') as f:
-        json.dump(record_dict, f)
-
-    metadata_filenames = ["dataset_description.json","tasks.json","participants.json"
-                          "tasks.csv", "participants.csv"]
-    for filename in metadata_filenames:
-        with open(save_dir / filename, 'w') as f:
-          pass
-
 
 if __name__ == '__main__':
     # json way of the world
@@ -137,7 +98,7 @@ if __name__ == '__main__':
     if not rec:
         raise ValueError(f'No records found for project {project_name}.')
     convert_to_bids(rec, OUTPUT_FOLDER)
-    ando.is_valid(OUTPUT_FOLDER)
+    is_valid(OUTPUT_FOLDER)
 
 
 

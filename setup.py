@@ -16,10 +16,10 @@ setup(
     packages=find_packages(),
 
     author="Julia Sprenger, Jeremy Garcia",
-    description="diglab2ando is a tool that allows automatically creating a directory where data and metadata from a "
-                "neuroscientific experiment are stored, and that follows the AnDO (Animal Data Organization) "
-                "specifications ( https://int-nit.github.io/AnDO/ ), using as input a filled pdf form or a redcap "
-                "survey/form generated using the DigLaB tool used at INT",
+    description="diglab2bids is a tool that allows automatically creating a directory where data and metadata from a "
+                "neuroscientific experiment are stored, and that follows the DigLab "
+                "specifications (https://github.com/INT-NIT/DigLabTools/), using as input a filled pdf form or a redcap "
+                "survey/form",
     license='MIT',
     install_requires=[],
     include_package_data=True,
